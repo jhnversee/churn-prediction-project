@@ -1,0 +1,57 @@
+def get_user_input():
+    print("\nEnter user details for churn prediction:")
+    subscription_type = input("Subscription Type (Basic/Standard/Premium): ")
+    monthly_spend = float(input("Monthly Spend: "))
+    login_frequency = int(input("Login Frequency (times/month): "))
+    watch_hours = float(input("Watch Hours (hours/month): "))
+    support_tickets = int(input("Support Tickets (count): "))
+    tenure_months = int(input("Tenure (months): "))
+    last_watched_days_ago = int(input("Last Watched (days ago): "))
+    
+    user_data = pd.DataFrame({
+        'subscription_type': [subscription_type],
+        'monthly_spend': [monthly_spend],
+        'login_frequency': [login_frequency],
+        'watch_hours': [watch_hours],
+        'support_tickets': [support_tickets],
+        'tenure_months': [tenure_months],
+        'last_watched_days_ago': [last_watched_days_ago]
+    })
+    
+    return user_data
+
+def predict_churn(user_data):
+    user_data = user_data.copy()
+    user_data['subscription_type'] = label_encoder.transform(user_data['subscription_type'])
+    user_scaled = scaler.transform(user_data)
+    
+    predictions = {}
+    probabilities = {}
+    
+    for name, model in models.items():
+        pred = model.predict(user_scaled)
+        prob = model.predict_proba(user_scaled)[:, 1]
+        predictions[name] = 'Churn' if pred[0] == 1 else 'Not Churn'
+        probabilities[name] = f"{prob[0]*100:.2f}%"
+    
+    return predictions, probabilities
+
+while True:
+    try:
+        user_data = get_user_input()
+        predictions, probabilities = predict_churn(user_data)
+        
+        print("\nPrediction Results:")
+        for model, pred in predictions.items():
+            print(f"{model}: {pred} (Probability: {probabilities[model]})")
+        
+        best_model = max(results.items(), key=lambda x: x[1]['F1 Score'])[0]
+        print(f"\nRecommended Model (based on F1 score): {best_model}")
+        print(f"Final Prediction: {predictions[best_model]} (Probability: {probabilities[best_model]})")
+        
+        another = input("\nPredict another user? (y/n): ")
+        if another.lower() != 'y':
+            break
+            
+    except Exception as e:
+        print(f"Error: {e}. Please try again with valid inputs.")
