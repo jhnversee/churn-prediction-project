@@ -1,0 +1,71 @@
+# Encode categorical variables
+label_encoder = LabelEncoder()
+data['subscription_type'] = label_encoder.fit_transform(data['subscription_type'])
+
+# Drop user_id as it's not a feature
+data = data.drop('user_id', axis=1)
+
+# Split into features and target
+X = data.drop('churn', axis=1)
+y = data['churn']
+
+# Split into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
+
+# Scale numerical features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+models = {
+    'Logistic Regression': LogisticRegression(max_iter=1000, random_state=42),
+    'K-Nearest Neighbors': KNeighborsClassifier(),
+    'Decision Tree': DecisionTreeClassifier(random_state=42),
+    'Random Forest': RandomForestClassifier(random_state=42),
+    'Gradient Boosting': GradientBoostingClassifier(random_state=42)
+}
+
+results = {}
+roc_data = {}
+pr_data = {}
+
+plt.figure(figsize=(15, 10))
+
+for i, (name, model) in enumerate(models.items(), 1):
+    model.fit(X_train_scaled, y_train)
+    y_pred = model.predict(X_test_scaled)
+    y_prob = model.predict_proba(X_test_scaled)[:, 1]
+    
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    roc_auc = roc_auc_score(y_test, y_prob)
+    avg_precision = average_precision_score(y_test, y_prob)
+    
+    results[name] = {
+        'Accuracy': accuracy,
+        'Precision': precision,
+        'Recall': recall,
+        'F1 Score': f1,
+        'ROC AUC': roc_auc,
+        'Avg Precision': avg_precision
+    }
+    
+    fpr, tpr, _ = roc_curve(y_test, y_prob)
+    roc_data[name] = (fpr, tpr)
+    
+    precision_curve, recall_curve, _ = precision_recall_curve(y_test, y_prob)
+    pr_data[name] = (precision_curve, recall_curve)
+    
+    cm = confusion_matrix(y_test, y_pred)
+    plt.subplot(2, 3, i)
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+                xticklabels=['Not Churn', 'Churn'], 
+                yticklabels=['Not Churn', 'Churn'])
+    plt.title(f'{name}\nConfusion Matrix')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+
+plt.tight_layout()
+plt.show()
