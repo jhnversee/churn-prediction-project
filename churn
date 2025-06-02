@@ -1,0 +1,44 @@
+plt.figure(figsize=(15, 12))
+
+# Churn distribution
+plt.subplot(3, 3, 1)
+sns.countplot(x='churn', data=data)
+plt.title('Churn Distribution')
+
+# Subscription type vs churn
+plt.subplot(3, 3, 2)
+sns.countplot(x='subscription_type', hue='churn', data=data)
+plt.title('Subscription Type vs Churn')
+
+# Monthly spend distribution
+plt.subplot(3, 3, 3)
+sns.histplot(data=data, x='monthly_spend', hue='churn', kde=True, element='step')
+plt.title('Monthly Spend Distribution')
+
+# Login frequency vs churn
+plt.subplot(3, 3, 4)
+sns.boxplot(x='churn', y='login_frequency', data=data)
+plt.title('Login Frequency vs Churn')
+
+# Watch hours vs churn
+plt.subplot(3, 3, 5)
+sns.boxplot(x='churn', y='watch_hours', data=data)
+plt.title('Watch Hours vs Churn')
+
+# Support tickets vs churn
+plt.subplot(3, 3, 6)
+sns.countplot(x='support_tickets', hue='churn', data=data)
+plt.title('Support Tickets vs Churn')
+
+# Tenure months vs churn
+plt.subplot(3, 3, 7)
+sns.boxplot(x='churn', y='tenure_months', data=data)
+plt.title('Tenure Months vs Churn')
+
+# Last watched days ago vs churn
+plt.subplot(3, 3, 8)
+sns.boxplot(x='churn', y='last_watched_days_ago', data=data)
+plt.title('Last Watched Days Ago vs Churn')
+
+plt.tight_layout()
+plt.show()
